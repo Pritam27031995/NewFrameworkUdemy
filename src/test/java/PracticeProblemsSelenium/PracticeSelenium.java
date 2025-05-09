@@ -1,6 +1,7 @@
 package PracticeProblemsSelenium;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -18,6 +19,9 @@ import java.util.Set;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
@@ -45,7 +49,6 @@ import org.testng.asserts.SoftAssert;
 import Utilities.BaseClass;
 
 public class PracticeSelenium extends BaseClass {
-
 
 	@Test
 	public void testDropdowns() {
@@ -189,73 +192,74 @@ public class PracticeSelenium extends BaseClass {
 		// to block pop ups
 		// ChromeOptions options = new ChromeOptions();
 		options.setExperimentalOption("excludeSwitches", Arrays.asList("disable-popup-blocking"));
-		
-		//To set default download directory
+
+		// To set default download directory
 		Map<String, Object> prefs = new HashMap<String, Object>();
 		prefs.put("download.default_directory", "/directory/path");
 		options.setExperimentalOption("prefs", prefs);
 
 	}
-	
+
 	@Test
 	public void testTakeScreenshot() throws IOException {
-		//Full page screenshot
+		// Full page screenshot
 		driver.get("https://rahulshettyacademy.com/AutomationPractice/");
-		File fs = ((TakesScreenshot)driver).getScreenshotAs(OutputType.FILE);
-		FileUtils.copyFile(fs, new File("D:\\Automation Workspace\\JavaSelenium\\SeleniumJavaPractice\\AutomationUIFramework\\Screenshots\\testScreenshot.png"));
-		
-		//Particular Webelement screenshot
-		
+		File fs = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(fs, new File(
+				"D:\\Automation Workspace\\JavaSelenium\\SeleniumJavaPractice\\AutomationUIFramework\\Screenshots\\testScreenshot.png"));
+
+		// Particular Webelement screenshot
+
 	}
-	
+
 	@Test
 	public void testBrokenLinks() throws MalformedURLException, IOException {
 		try {
 			driver.get("https://rahulshettyacademy.com/AutomationPractice/");
-			WebElement footer =driver.findElement(By.xpath("//div[@class=' footer_top_agile_w3ls gffoot footer_style']"));
+			WebElement footer = driver
+					.findElement(By.xpath("//div[@class=' footer_top_agile_w3ls gffoot footer_style']"));
 			List<WebElement> links = footer.findElements(By.tagName("a"));
-			//System.out.println(links.size());
-			for(WebElement e: links) {
-				//System.out.println(e.getAttribute("href"));
+			// System.out.println(links.size());
+			for (WebElement e : links) {
+				// System.out.println(e.getAttribute("href"));
 				HttpURLConnection url = (HttpURLConnection) new URL(e.getAttribute("href")).openConnection();
 				url.setRequestMethod("HEAD");
 				url.connect();
-				//System.out.println(url.getResponseCode());
-				if(url.getResponseCode()>400) {
-					System.out.println("The broken links are "+ e.getAttribute("href"));
+				// System.out.println(url.getResponseCode());
+				if (url.getResponseCode() > 400) {
+					System.out.println("The broken links are " + e.getAttribute("href"));
 					softassert.assertTrue(false);
 				}
 			}
 			softassert.assertAll();
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
-	
+
 	@Test
 	public void testJavaStreams() {
 		driver.get("https://rahulshettyacademy.com/seleniumPractise/#/offers");
-		//validate that sorting functionality is working properly on the web table
+		// validate that sorting functionality is working properly on the web table
 		driver.findElement(By.xpath("//tr/th[1]")).click();
 		List<WebElement> elements = driver.findElements(By.xpath("//tr/td[1]"));
-		List<String> originalList = elements.stream().map(S-> S.getText()).toList();
+		List<String> originalList = elements.stream().map(S -> S.getText()).toList();
 		List<String> SortedList = originalList.stream().sorted().toList();
-		Assert.assertTrue(originalList.equals(SortedList),"The Webtable is not in sorted order");
-		
-		//Get the price of the item passed
+		Assert.assertTrue(originalList.equals(SortedList), "The Webtable is not in sorted order");
+
+		// Get the price of the item passed
 		String item = "Beans";
-		List<String> Prices= elements.stream().filter(s->s.getText().contains(item)).map(s->
-		s.findElement(By.xpath("following-sibling::td[1]")).getText()).toList();
-		System.out.println("Price of item "+item+ " is: "+ Prices);
-		
-		
+		List<String> Prices = elements.stream().filter(s -> s.getText().contains(item))
+				.map(s -> s.findElement(By.xpath("following-sibling::td[1]")).getText()).toList();
+		System.out.println("Price of item " + item + " is: " + Prices);
+
 	}
-	
+
 	@Test
 	public void testNewWindowOrTab() {
 		driver.get("https://rahulshettyacademy.com/AutomationPractice/");
-		//driver.navigate().to("https://rahulshettyacademy.com/seleniumPractise/#/offers");
+		// driver.navigate().to("https://rahulshettyacademy.com/seleniumPractise/#/offers");
 		driver.switchTo().newWindow(WindowType.TAB);
 		driver.get("https://rahulshettyacademy.com/seleniumPractise/#/offers");
 		driver.findElement(By.cssSelector("#search-field")).sendKeys("Rice");
@@ -263,37 +267,70 @@ public class PracticeSelenium extends BaseClass {
 		Set<String> windows = driver.getWindowHandles();
 		Iterator<String> it = windows.iterator();
 		String parentwindow = it.next();
-		System.out.println("Current windowname: "+windows);
+		System.out.println("Current windowname: " + windows);
 		driver.switchTo().window(parentwindow);
 		driver.findElement(By.id("alertbtn")).click();
 	}
-	
+
 	@Test
 	public void testElementScreenshot() throws IOException {
 		driver.get("https://rahulshettyacademy.com/seleniumPractise/#/offers");
 		driver.findElement(By.cssSelector("#search-field")).sendKeys("Rice");
-		File screenshot =driver.findElement(By.cssSelector("#search-field")).getScreenshotAs(OutputType.FILE);
-		FileUtils.copyFile(screenshot, new File("D:\\Automation Workspace\\JavaSelenium\\AutomationUIFramework\\Screenshots\\partial.png"));
+		File screenshot = driver.findElement(By.cssSelector("#search-field")).getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(screenshot,
+				new File("D:\\Automation Workspace\\JavaSelenium\\AutomationUIFramework\\Screenshots\\partial.png"));
 	}
-	
-	@Test(dataProvider="getData")
+
+	@Test(dataProvider = "getData")
 	public void testDataProvider(String Username, String Password) {
-		System.out.println("Username: "+Username);
-		System.out.println("Password: "+ Password);
-		
+		System.out.println("Username: " + Username);
+		System.out.println("Password: " + Password);
+
 	}
-	
-	
+
+	@Test
+	public void testExcelDataExtractionMorrisons() throws IOException {
+		String Keyword="";
+		String Columnname ="";		
+		List<HashMap<String, String>> ListTestData = new ArrayList<HashMap<String, String>>();
+		DataFormatter formatter = new DataFormatter();
+		FileInputStream fis = new FileInputStream("TestData/DriverExcel.xlsx");
+		XSSFWorkbook workbook = new XSSFWorkbook(fis);
+		XSSFSheet sheet = workbook.getSheet("TestData");
+		int rows = sheet.getPhysicalNumberOfRows();
+		String Data = null;
+		// int k=0;
+
+		for (int count = 1; count < rows; count++) {
+			HashMap<String, String> initialMap = new HashMap<String, String>();
+			int cols = sheet.getRow(0).getPhysicalNumberOfCells();
+			for (int colcnt = 0; colcnt < cols; colcnt++) {
+				String KeyWord = formatter.formatCellValue(sheet.getRow(0).getCell(colcnt));
+				String value = formatter.formatCellValue(sheet.getRow(count).getCell(colcnt));
+				initialMap.put(KeyWord, value);
+			}
+			ListTestData.add(count - 1, initialMap);
+		}
+
+		for (int c = 0; c < ListTestData.size(); c++) {
+			if (ListTestData.get(c).get("Keyword").equalsIgnoreCase(Keyword)) {
+				Data = ListTestData.get(c).get(Columnname).toString();
+				break;
+			}
+		}
+
+	}
+
 	@DataProvider
-	public Object[][] getData(){
+	public Object[][] getData() {
 		Object[][] data = new Object[3][2];
-		data[0][0]="FirstUsername";
-		data[0][1]="FirstPassword";
-		data[1][0]="SecondUsername";
-		data[1][1]="SecondPassword";
-		data[2][0]="ThirdUsername";
-		data[2][1]="ThirdPassword";
-		
+		data[0][0] = "FirstUsername";
+		data[0][1] = "FirstPassword";
+		data[1][0] = "SecondUsername";
+		data[1][1] = "SecondPassword";
+		data[2][0] = "ThirdUsername";
+		data[2][1] = "ThirdPassword";
+
 		return data;
 	}
 
@@ -308,13 +345,12 @@ public class PracticeSelenium extends BaseClass {
 		// Explicit wait
 		wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 		softassert = new SoftAssert();
-		
-		
+
 	}
 
 	@AfterMethod
 	public void afterTest() {
-		 driver.quit();
+		driver.quit();
 	}
 
 }

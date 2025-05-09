@@ -10,6 +10,7 @@ import java.util.Properties;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 
 import PageObjects.CartPage;
 import PageObjects.CheckoutPage;
@@ -25,6 +26,8 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 public class PurchaseOrder extends BaseClass{
+	
+	LoginPage loginPage;
 	
 	@Before
 	public void BeforeEveryTest() throws IOException {
@@ -57,7 +60,7 @@ public class PurchaseOrder extends BaseClass{
 
 	@Given("User login to E-commerce website using {string} and {string}")
 	public void User_login_to_Ecommerce_website(String username, String password) {
-		LoginPage loginPage = new LoginPage(driver);
+		loginPage = new LoginPage(driver);
 		loginPage.login(username, password);
 	}
 	
@@ -67,7 +70,7 @@ public class PurchaseOrder extends BaseClass{
 		pdpage.AddProductToCart(product, wait);
 	}
 	
-	@And("User validates the {string} is added in the cart")
+	@And("^User validates the (.+) is added in the cart$")
 	public void User_validates_the_product_added_in_cart(String product) {
 		CartPage cartpage = new CartPage(driver);
 		cartpage.validateCart(product, wait);
@@ -83,5 +86,11 @@ public class PurchaseOrder extends BaseClass{
 	public void User_should_get_the_confirmation_message() {
 		OrderConfirmationPage ordConfPage = new OrderConfirmationPage(driver);
 		ordConfPage.checkConfirmation(wait);
+	}
+	
+	@When("The credentials are wrong user should get an error message")
+	public void Validate_Error_Message() {
+		String Errormessage =loginPage.getErrorMessage(wait);
+		Assert.assertEquals(Errormessage, "Incorrect email or password.");
 	}
 }
